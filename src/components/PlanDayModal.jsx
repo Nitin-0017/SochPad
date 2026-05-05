@@ -3,19 +3,18 @@ import { planDay } from '../utils/ai';
 import Loading from './Loading';
 import { CalendarDays, X, Sparkles, Timer, Check } from 'lucide-react';
 
-export default function PlanDayModal({ tasks, currentMood, apiKey, onClose }) {
+export default function PlanDayModal({ tasks, currentMood, onClose, onSave }) {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const generate = async () => {
-    if (!apiKey) { setError('Need API key!'); return; }
     const pending = tasks.filter(t => t.status !== 'done');
     if (!pending.length) { setError("No tasks to plan! Add some first"); return; }
     setLoading(true);
     setError('');
     try {
-      const result = await planDay(pending, currentMood || 'neutral', apiKey);
+      const result = await planDay(pending, currentMood || 'neutral');
       setPlan(result);
     } catch (e) {
       setError("Couldn't plan today. " + e.message);
@@ -92,7 +91,7 @@ export default function PlanDayModal({ tasks, currentMood, apiKey, onClose }) {
             </div>
             <div style={{ marginTop:20, display:'flex', gap:10 }}>
               <button className="btn btn-ghost btn-sm" onClick={() => { setPlan(null); }}>↩ Regenerate</button>
-              <button className="btn btn-primary btn-sm" onClick={onClose} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}><Check size={14} /> Looks good!</button>
+              <button className="btn btn-primary btn-sm" onClick={() => onSave(plan)} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}><Check size={14} /> Looks good!</button>
             </div>
           </div>
         )}

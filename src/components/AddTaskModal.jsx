@@ -12,7 +12,7 @@ const LOADING_MSGS = [
   'Untangling your thoughts...',
 ];
 
-export default function AddTaskModal({ onClose, onAdd, apiKey }) {
+export default function AddTaskModal({ onClose, onAdd }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
@@ -22,13 +22,12 @@ export default function AddTaskModal({ onClose, onAdd, apiKey }) {
 
   const handleSubmit = async () => {
     if (!input.trim()) return;
-    if (!apiKey) { setError('Add your API key in settings first!'); return; }
     setLoading(true);
     setError('');
     setLoadingMsg(LOADING_MSGS[Math.floor(Math.random() * LOADING_MSGS.length)]);
     const interval = setInterval(() => setDotCount(d => (d+1) % 4), 400);
     try {
-      const result = await parseTask(input, apiKey);
+      const result = await parseTask(input);
       setParsed({
         ...result,
         subtasks: result.subtasks?.map(s => ({ text: s, done: false })) || [],

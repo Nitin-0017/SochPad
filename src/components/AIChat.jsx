@@ -10,7 +10,7 @@ const SUGGESTIONS = [
   "Give me a pep talk",
 ];
 
-export default function AIChat({ tasks, apiKey, onClose }) {
+export default function AIChat({ tasks, onClose }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -28,10 +28,6 @@ export default function AIChat({ tasks, apiKey, onClose }) {
   const send = async (text) => {
     const msg = text || input.trim();
     if (!msg) return;
-    if (!apiKey) {
-      setMessages(prev => [...prev, { role:'assistant', content:"I need an API key to think! Add it in settings first" }]);
-      return;
-    }
     setInput('');
     const userMsg = { role:'user', content: msg };
     const newMsgs = [...messages, userMsg];
@@ -49,7 +45,7 @@ export default function AIChat({ tasks, apiKey, onClose }) {
     ];
 
     try {
-      const reply = await callAI(apiMessages, apiKey, false);
+      const reply = await callAI(apiMessages, false);
       setMessages(prev => [...prev, { role:'assistant', content: reply }]);
     } catch (e) {
       setMessages(prev => [...prev, { role:'assistant', content:`Oops, brain glitch. ${e.message}` }]);

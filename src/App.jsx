@@ -1,26 +1,36 @@
 import { useState, useEffect, useReducer } from 'react';
 import './index.css';
 import { storage, KEYS } from './utils/storage';
-import { calcStreak } from './utils/helpers';
+import { api } from './utils/api';
 
 import Dashboard from './components/Dashboard';
 import TaskBoard from './components/TaskBoard';
 import Analytics from './components/Analytics';
+import Schedule from './components/Schedule';
 import AddTaskModal from './components/AddTaskModal';
 import TaskDetailModal from './components/TaskDetailModal';
 import PlanDayModal from './components/PlanDayModal';
 import SettingsModal from './components/SettingsModal';
 import AIChat, { ChatBubble } from './components/AIChat';
+import AuthModal from './components/AuthModal';
 
 // ===== TASK REDUCER =====
 function taskReducer(state, action) {
   switch (action.type) {
-    case 'LOAD': return action.tasks;
+    case 'LOAD': return action.tasks.map(t => t.status === 'done' ? { ...t, subtasks: t.subtasks?.map(s => ({...s, done:true})) } : t);
     case 'ADD': return [action.task, ...state];
-    case 'DELETE': return state.filter(t => t.id !== action.id);
-    case 'COMPLETE': return state.map(t => t.id === action.id ? { ...t, status:'done' } : t);
-    case 'MOVE': return state.map(t => t.id === action.id ? { ...t, status:action.status } : t);
-    case 'SNOOZE': return state.map(t => t.id === action.id
+    case 'DELETE': return state.filter(t => t.id !== action.id || t._id !== action.id);
+    case 'COMPLETE': return state.map(t => (t.id === action.id || t._id === action.id) ? { ...t, status:'done', subtasks: t.subtasks?.map(s => ({...s, done:true})) } : t);
+    case 'MOVE': return state.map(t => {
+      if (t.id === action.id || t._id === action.id) {
+        if (action.status === 'done') {
+           return { ...t, status: action.status, subtasks: t.subtasks?.map(s => ({...s, done:true})) };
+        }
+        return { ...t, status:action.status };
+      }
+      return t;
+    });
+    case 'SNOOZE': return state.map(t => (t.id === action.id || t._id === action.id)
       ? {
           ...t,
           snooze_count: (t.snooze_count||0)+1,
@@ -32,98 +42,160 @@ function taskReducer(state, action) {
         }
       : t
     );
-    case 'UPDATE': return state.map(t => t.id === action.id ? { ...t, ...action.updates } : t);
+    case 'UPDATE': return state.map(t => (t.id === action.id || t._id === action.id) ? { ...t, ...action.updates } : t);
     default: return state;
   }
 }
 
-import { Home, LayoutDashboard, BarChart2, Flame, Plus, Settings, Key, X, Brain } from 'lucide-react';
+import { Home, LayoutDashboard, BarChart2, CalendarDays as CalendarIcon, Flame, Plus, Settings, Key, X, Brain } from 'lucide-react';
 
 // ===== NAV ITEMS =====
 const NAV = [
   { id:'dashboard', label:'Home', icon: Home },
   { id:'board', label:'Board', icon: LayoutDashboard },
+  { id:'schedule', label:'Schedule', icon: CalendarIcon },
   { id:'analytics', label:'Analytics', icon: BarChart2 },
 ];
 
 export default function App() {
   const [tasks, dispatch] = useReducer(taskReducer, []);
-  const [completions, setCompletions] = useState([]);
+  const [streak, setStreak] = useState(0);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [showAdd, setShowAdd] = useState(false);
   const [showPlan, setShowPlan] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [expandedTask, setExpandedTask] = useState(null);
-  const [apiKey, setApiKey] = useState('');
   const [userName, setUserName] = useState('');
   const [currentMood, setCurrentMood] = useState('');
   const [moodHistory, setMoodHistory] = useState([]);
-  const [showApiPrompt, setShowApiPrompt] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  // Load from storage on mount
+  // Load from backend on mount
   useEffect(() => {
-    const savedTasks = storage.get(KEYS.TASKS, []);
-    const savedCompletions = storage.get(KEYS.COMPLETIONS, []);
+    const initApp = async () => {
+      setAuthLoading(true);
+      try {
+        const user = await api.getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          const backendTasks = await api.getTasks();
+          dispatch({ type:'LOAD', tasks: backendTasks });
+          try {
+            const analytics = await api.getAnalytics();
+            setStreak(analytics.streak || 0);
+          } catch(e) {}
+        }
+      } catch (err) {
+        console.error('Init failed', err);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
     const savedPrefs = storage.get(KEYS.USER_PREFS, {});
     const savedMoodHistory = storage.get(KEYS.MOOD_HISTORY, []);
-    const savedApiKey = storage.get(KEYS.API_KEY, '');
 
-    dispatch({ type:'LOAD', tasks: savedTasks });
-    setCompletions(savedCompletions);
+    initApp();
     setUserName(savedPrefs.name || '');
     setCurrentMood(savedPrefs.lastMood || '');
     setMoodHistory(savedMoodHistory);
-    setApiKey(savedApiKey);
-
-    if (!savedApiKey) {
-      setTimeout(() => setShowApiPrompt(true), 1500);
-    }
   }, []);
 
-  // Persist tasks
-  useEffect(() => {
-    storage.set(KEYS.TASKS, tasks);
-  }, [tasks]);
+  // We'll sync with backend in handlers instead of this effect
+  // useEffect(() => {
+  //   storage.set(KEYS.TASKS, tasks);
+  // }, [tasks]);
 
-  // Persist completions
-  useEffect(() => {
-    storage.set(KEYS.COMPLETIONS, completions);
-  }, [completions]);
 
-  const handleAddTask = (task) => {
-    dispatch({ type:'ADD', task });
-  };
 
-  const handleComplete = (id) => {
-    dispatch({ type:'COMPLETE', id });
-    const today = new Date().toISOString().split('T')[0];
-    setCompletions(prev => [...prev, { id, date: today, timestamp: new Date().toISOString() }]);
-  };
-
-  const handleDelete = (id) => {
-    dispatch({ type:'DELETE', id });
-  };
-
-  const handleSnooze = (id) => {
-    dispatch({ type:'SNOOZE', id });
-  };
-
-  const handleMove = (id, status) => {
-    dispatch({ type:'MOVE', id, status });
-    if (status === 'done') {
-      const today = new Date().toISOString().split('T')[0];
-      setCompletions(prev => [...prev, { id, date: today, timestamp: new Date().toISOString() }]);
+  const handleAddTask = async (task) => {
+    try {
+      const savedTask = await api.createTask(task);
+      dispatch({ type:'ADD', task: savedTask });
+    } catch (err) {
+      console.error('Failed to add task', err);
+      dispatch({ type:'ADD', task }); // Fallback local
     }
   };
 
-  const handleUpdateTask = (id, updates) => {
-    dispatch({ type:'UPDATE', id, updates });
+  const handleComplete = async (id) => {
+    try {
+      const task = tasks.find(t => t._id === id || t.id === id);
+      const updatedSubtasks = task.subtasks?.map(s => ({ ...s, done: true }));
+      const updates = { status: 'done' };
+      if (updatedSubtasks) updates.subtasks = updatedSubtasks;
+      await api.updateTask(id, updates);
+      dispatch({ type:'COMPLETE', id });
+      
+      // Refresh streak from backend
+      const analytics = await api.getAnalytics();
+      setStreak(analytics.streak || 0);
+    } catch (err) {
+      console.error('Failed to complete task', err);
+    }
   };
 
-  const handleSaveApiKey = (key) => {
-    setApiKey(key);
-    storage.set(KEYS.API_KEY, key);
+  const handleDelete = async (id) => {
+    try {
+      await api.deleteTask(id);
+      dispatch({ type:'DELETE', id });
+    } catch (err) {
+      console.error('Failed to delete task', err);
+    }
+  };
+
+  const handleSnooze = async (id) => {
+    const task = tasks.find(t => t._id === id || t.id === id);
+    if (!task) return;
+    const newSnoozeCount = (task.snooze_count || 0) + 1;
+    try {
+      await api.updateTask(id, { snooze_count: newSnoozeCount });
+      dispatch({ type:'SNOOZE', id });
+    } catch (err) {
+      console.error('Failed to snooze task', err);
+    }
+  };
+
+  const handleMove = async (id, status) => {
+    try {
+      const task = tasks.find(t => t._id === id || t.id === id);
+      const updatedSubtasks = status === 'done' ? task.subtasks?.map(s => ({ ...s, done: true })) : undefined;
+      const updates = { status };
+      if (updatedSubtasks) updates.subtasks = updatedSubtasks;
+      await api.updateTask(id, updates);
+      dispatch({ type:'MOVE', id, status });
+      if (status === 'done') {
+        const analytics = await api.getAnalytics();
+        setStreak(analytics.streak || 0);
+      }
+    } catch (err) {
+      console.error('Failed to move task', err);
+    }
+  };
+
+  const handleUpdateTask = async (id, updates) => {
+    try {
+      const updated = await api.updateTask(id, updates);
+      dispatch({ type:'UPDATE', id, updates: updated });
+      if (updates.status === 'done') {
+        const analytics = await api.getAnalytics();
+        setStreak(analytics.streak || 0);
+      }
+    } catch (err) {
+      console.error('Failed to update task', err);
+    }
+  };
+
+  const handleSaveSchedule = async (blocks) => {
+    try {
+      await api.saveSchedule(blocks);
+      setShowPlan(false);
+      setCurrentPage('schedule');
+    } catch (err) {
+      console.error('Failed to save schedule', err);
+    }
   };
 
   const handleSaveName = (name) => {
@@ -140,7 +212,17 @@ export default function App() {
     storage.set(KEYS.USER_PREFS, { name: userName, lastMood: mood });
   };
 
-  const streak = calcStreak(completions);
+  const handleLogout = () => {
+    api.logout();
+    setCurrentUser(null);
+    dispatch({ type:'LOAD', tasks: [] });
+  };
+
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    api.getTasks().then(tasks => dispatch({ type:'LOAD', tasks }));
+    api.getAnalytics().then(a => setStreak(a.streak || 0));
+  };
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
@@ -221,6 +303,23 @@ export default function App() {
           <Plus size={16} /> Add Task
         </button>
 
+        {/* Logout */}
+        {currentUser && (
+          <button
+            onClick={handleLogout}
+            style={{
+              background:'rgba(220,50,50,0.05)', border:'none', color: '#C53030',
+              borderRadius:50, padding:'8px 16px', cursor:'pointer',
+              fontFamily:"'Plus Jakarta Sans', sans-serif", fontWeight:600, fontSize:13,
+              transition:'all 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,50,50,0.1)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(220,50,50,0.05)'}
+          >
+            Log Out
+          </button>
+        )}
+
         {/* Settings */}
         <button
           onClick={() => setShowSettings(true)}
@@ -238,39 +337,28 @@ export default function App() {
         </button>
       </nav>
 
-      {/* API KEY PROMPT */}
-      {showApiPrompt && !apiKey && (
-        <div style={{
-          background:'rgba(255,249,177,0.9)', backdropFilter:'blur(8px)',
-          borderBottom:'2px solid rgba(212,134,26,0.3)',
-          padding:'12px 24px',
-          display:'flex', alignItems:'center', gap:12,
-          animation:'slideUp 0.3s ease',
-          boxShadow:'0 4px 12px rgba(0,0,0,0.1)',
-        }}>
-          <Key size={18} color="var(--accent)" />
-          <p style={{ fontSize:15, color:'var(--text-dark)', flex:1, fontFamily:"'Plus Jakarta Sans',sans-serif", margin: 0 }}>
-            Add your Gemini API key to unlock the thinking buddy — task parsing, day planning, mood coaching & more!
-          </p>
-          <button className="btn btn-primary btn-sm" onClick={() => { setShowApiPrompt(false); setShowSettings(true); }}>
-            Add Key
-          </button>
-          <button onClick={() => setShowApiPrompt(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-mid)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
+      {/* AUTH MODAL */}
+      {!currentUser && !authLoading && <AuthModal onLogin={handleLoginSuccess} />}
+
+      {authLoading && (
+        <div style={{ position:'fixed', inset:0, background:'white', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <p style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", color:'var(--text-mid)' }}>Connecting to SochPad...</p>
         </div>
       )}
+
+
 
       {/* MAIN CONTENT */}
       <main style={{ flex:1, maxWidth:1100, width:'100%', margin:'0 auto', padding:'32px 24px' }}>
         {currentPage === 'dashboard' && (
           <Dashboard
             tasks={tasks}
-            completions={completions}
             moodHistory={moodHistory}
             currentMood={currentMood}
             onMoodSet={handleMoodSet}
             onPlanDay={() => setShowPlan(true)}
             onAddClick={() => setShowAdd(true)}
-            apiKey={apiKey}
+            userName={userName}
           />
         )}
         {currentPage === 'board' && (
@@ -283,8 +371,11 @@ export default function App() {
             onExpand={setExpandedTask}
           />
         )}
+        {currentPage === 'schedule' && (
+          <Schedule onPlanDay={() => setShowPlan(true)} />
+        )}
         {currentPage === 'analytics' && (
-          <Analytics tasks={tasks} completions={completions} apiKey={apiKey} />
+          <Analytics tasks={tasks} moodHistory={moodHistory} />
         )}
       </main>
 
@@ -293,7 +384,6 @@ export default function App() {
         <AddTaskModal
           onClose={() => setShowAdd(false)}
           onAdd={handleAddTask}
-          apiKey={apiKey}
         />
       )}
       {expandedTask && (
@@ -302,21 +392,19 @@ export default function App() {
           onClose={() => setExpandedTask(null)}
           onUpdate={handleUpdateTask}
           onDelete={(id) => { handleDelete(id); setExpandedTask(null); }}
-          apiKey={apiKey}
+          onComplete={(id) => { handleComplete(id); setExpandedTask(null); }}
         />
       )}
       {showPlan && (
         <PlanDayModal
           tasks={tasks}
           currentMood={currentMood}
-          apiKey={apiKey}
           onClose={() => setShowPlan(false)}
+          onSave={handleSaveSchedule}
         />
       )}
       {showSettings && (
         <SettingsModal
-          apiKey={apiKey}
-          onSave={handleSaveApiKey}
           onClose={() => setShowSettings(false)}
           userName={userName}
           onNameSave={handleSaveName}
@@ -324,7 +412,7 @@ export default function App() {
       )}
 
       {/* AI CHAT */}
-      {showChat && <AIChat tasks={tasks} apiKey={apiKey} onClose={() => setShowChat(false)} />}
+      {showChat && <AIChat tasks={tasks} onClose={() => setShowChat(false)} />}
       <ChatBubble onClick={() => setShowChat(s => !s)} />
     </div>
   );

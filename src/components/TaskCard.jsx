@@ -38,7 +38,7 @@ export default function TaskCard({ task, index, onComplete, onDelete, onSnooze, 
     setShowConfetti(true);
     setTimeout(() => {
       setShowConfetti(false);
-      onComplete(task.id);
+      onComplete(task._id || task.id);
     }, 650);
   };
 
@@ -46,12 +46,12 @@ export default function TaskCard({ task, index, onComplete, onDelete, onSnooze, 
     e.stopPropagation();
     setWiggling(true);
     setTimeout(() => setWiggling(false), 600);
-    onSnooze(task.id);
+    onSnooze(task._id || task.id);
   };
 
   const handleDragStart = (e) => {
     setIsDragging(true);
-    if (onDragStart) onDragStart(e, task.id);
+    if (onDragStart) onDragStart(e, task._id || task.id);
   };
 
   const handleDragEnd = () => {
@@ -217,7 +217,7 @@ export default function TaskCard({ task, index, onComplete, onDelete, onSnooze, 
             ><Check size={14} /></button>
           </>
         )}
-        <button onClick={(e) => { e.stopPropagation(); onDelete(task.id); }} title="Delete" style={{
+        <button onClick={(e) => { e.stopPropagation(); onDelete(task._id || task.id); }} title="Delete" style={{
           background:'rgba(220,50,50,0.08)', border:'none', borderRadius:50,
           width:26, height:26, cursor:'pointer', fontSize:11,
           display:'flex', alignItems:'center', justifyContent:'center',

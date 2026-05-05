@@ -5,7 +5,7 @@ import { PartyPopper, Sparkles, Target, Trophy, List, Zap, CheckCircle2 } from '
 
 const COLUMNS = [
   { key:'todo', label:'To Do', icon: List, accent:'#FFF9B1' },
-  { key:'inprogress', label:'In Progress', icon: Zap, accent:'#DDD6FE' },
+  { key:'in-progress', label:'In Progress', icon: Zap, accent:'#DDD6FE' },
   { key:'done', label:'Done', icon: CheckCircle2, accent:'#C4F0DC' },
 ];
 
@@ -116,11 +116,11 @@ export default function TaskBoard({ tasks, onComplete, onDelete, onSnooze, onMov
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px'
                   }}>
                     {col.key === 'todo' ? <><Sparkles size={20} /> So fresh, so clean!</> :
-                     col.key === 'inprogress' ? <><Target size={20} /> Drag a note here</> :
+                     col.key === 'in-progress' ? <><Target size={20} /> Drag a note here</> :
                      <><Trophy size={20} /> Complete something!</>}
                     <span style={{ fontSize:13, opacity:0.7 }}>
                       {col.key === 'todo' ? 'Nothing pinned here yet' :
-                       col.key === 'inprogress' ? 'to start working on it' :
+                       col.key === 'in-progress' ? 'to start working on it' :
                        "You'll see it here"}
                     </span>
                   </div>
@@ -128,7 +128,7 @@ export default function TaskBoard({ tasks, onComplete, onDelete, onSnooze, onMov
                   <TaskCard
                     key={task.id}
                     task={task}
-                    index={i + (col.key === 'inprogress' ? 5 : col.key === 'done' ? 10 : 0)}
+                    index={i + (col.key === 'in-progress' ? 5 : col.key === 'done' ? 10 : 0)}
                     onComplete={handleComplete}
                     onDelete={onDelete}
                     onSnooze={onSnooze}

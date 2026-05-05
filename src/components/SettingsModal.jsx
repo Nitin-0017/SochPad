@@ -2,14 +2,12 @@ import { useState } from 'react';
 import { storage, KEYS } from '../utils/storage';
 import { Settings as SettingsIcon, X, Key, Eye, EyeOff, BrainCircuit, Check, Trash2 } from 'lucide-react';
 
-export default function SettingsModal({ apiKey, onSave, onClose, userName, onNameSave }) {
-  const [key, setKey] = useState(apiKey || '');
+export default function SettingsModal({ onClose, userName, onNameSave }) {
   const [name, setName] = useState(userName || '');
   const [saved, setSaved] = useState(false);
   const [showKey, setShowKey] = useState(false);
 
   const handleSave = () => {
-    onSave(key.trim());
     onNameSave(name.trim());
     setSaved(true);
     setTimeout(() => { setSaved(false); onClose(); }, 1000);
@@ -43,36 +41,6 @@ export default function SettingsModal({ apiKey, onSave, onClose, userName, onNam
               placeholder="What should I call you?"
               style={{ fontFamily:"'Caveat',cursive", fontSize:20 }}
             />
-          </div>
-
-          {/* API Key */}
-          <div>
-            <label style={{ fontSize:12, fontWeight:600, color:'var(--text-mid)', display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
-              <Key size={14} /> GEMINI API KEY
-            </label>
-            <div style={{ position:'relative' }}>
-              <input
-                className="input-field"
-                type={showKey ? 'text' : 'password'}
-                value={key}
-                onChange={e => setKey(e.target.value)}
-                placeholder="AIzaSy..."
-                style={{ paddingRight:50 }}
-              />
-              <button
-                onClick={() => setShowKey(s => !s)}
-                style={{
-                  position:'absolute', right:12, top:'50%', transform:'translateY(-50%)',
-                  background:'none', border:'none', cursor:'pointer', color:'var(--text-light)', display:'flex', alignItems:'center', justifyContent:'center'
-                }}
-              >
-                {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            <p style={{ fontSize:11, color:'var(--text-light)', marginTop:6, lineHeight:1.5 }}>
-              Your key is stored locally in your browser only. Never sent anywhere except directly to Google Gemini.
-              Get yours at <a href="https://aistudio.google.com" target="_blank" rel="noopener" style={{ color:'var(--accent)' }}>aistudio.google.com</a>
-            </p>
           </div>
 
           {/* App info */}

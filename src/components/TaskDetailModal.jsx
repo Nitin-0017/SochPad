@@ -3,7 +3,7 @@ import { getCategoryEmoji, formatDate, getPriorityColor } from '../utils/helpers
 import { getProcrastinationInsight } from '../utils/ai';
 import { X, CalendarDays, Timer, Clock, Lightbulb, Bot, Check, BrainCircuit, Trash2 } from 'lucide-react';
 
-export default function TaskDetailModal({ task, onClose, onUpdate, onDelete, apiKey }) {
+export default function TaskDetailModal({ task, onClose, onUpdate, onDelete, onComplete }) {
   const [insight, setInsight] = useState('');
   const [loadingInsight, setLoadingInsight] = useState(false);
   const [localTask, setLocalTask] = useState(task);
@@ -12,19 +12,36 @@ export default function TaskDetailModal({ task, onClose, onUpdate, onDelete, api
   const updateSubtask = (i, done) => {
     const updated = { ...localTask };
     updated.subtasks = localTask.subtasks.map((s,si) => si===i ? {...s, done} : s);
+    
+    const completedCount = updated.subtasks.filter(s => s.done).length;
+    const totalCount = updated.subtasks.length;
+    
+    let newStatus = updated.status;
+    if (totalCount > 0) {
+      // If at least one subtask is checked (even all), keep it as in-progress until manually checked on the card
+      if (completedCount > 0) {
+        newStatus = newStatus === 'done' ? 'done' : 'in-progress';
+      } else {
+        newStatus = newStatus === 'done' ? 'done' : 'todo';
+      }
+    }
+    updated.status = newStatus;
+    
+    const taskId = updated._id || updated.id;
     setLocalTask(updated);
-    onUpdate(updated.id, { subtasks: updated.subtasks });
+    onUpdate(taskId, { subtasks: updated.subtasks, status: newStatus });
   };
 
   const saveNote = () => {
-    onUpdate(localTask.id, { notes: note });
+    const taskId = localTask._id || localTask.id;
+    onUpdate(taskId, { notes: note });
   };
 
   const fetchInsight = async () => {
-    if (!apiKey) return;
+
     setLoadingInsight(true);
     try {
-      const res = await getProcrastinationInsight(task, apiKey);
+      const res = await getProcrastinationInsight(task);
       setInsight(res);
     } catch {}
     setLoadingInsight(false);
@@ -171,7 +188,7 @@ export default function TaskDetailModal({ task, onClose, onUpdate, onDelete, api
 
         {/* Actions */}
         <div style={{ display:'flex', gap:10 }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => { onDelete(task.id); onClose(); }} style={{ display:'flex', alignItems:'center', gap:6, color: '#D94040' }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => { onDelete(task._id || task.id); onClose(); }} style={{ display:'flex', alignItems:'center', gap:6, color: '#D94040' }}>
             <Trash2 size={14} /> Delete
           </button>
           <div style={{ flex:1 }} />
