@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5001/api';
+const API_BASE = 'https://sochpad.onrender.com/api';
 
 const getHeaders = () => {
   const token = localStorage.getItem('sochpad_token');
