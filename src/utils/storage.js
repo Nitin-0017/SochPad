@@ -15,11 +15,6 @@ export const storage = {
 };
 
 export const KEYS = {
-  TASKS: 'tasks',
   MOOD_HISTORY: 'mood_history',
-  CHAT_HISTORY: 'chat_history',
   USER_PREFS: 'user_prefs',
-  STREAK: 'streak',
-  COMPLETIONS: 'completions',
-  API_KEY: 'api_key',
 };

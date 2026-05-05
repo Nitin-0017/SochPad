@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { getWeeklyAnalysis } from '../utils/ai';
-import { getCategoryEmoji } from '../utils/helpers';
 import Loading from './Loading';
 import { Trophy, Zap, Wind, Ghost, Eye, Clock, BrainCircuit, Lightbulb, Target, Book, Activity, Briefcase, Users, Leaf, DollarSign, Pin } from 'lucide-react';
 

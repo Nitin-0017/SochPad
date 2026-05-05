@@ -226,15 +226,8 @@ export default function App() {
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column' }}>
-      {/* TOP NAV - Minimal soft style */}
-      <nav style={{
-        position:'sticky', top:0, zIndex:100,
-        background:'rgba(255, 255, 255, 0.85)',
-        backdropFilter:'blur(12px)',
-        borderBottom:'1px solid rgba(0,0,0,0.04)',
-        padding:'0 24px',
-        display:'flex', alignItems:'center', gap:20, height:72,
-      }}>
+      {/* TOP NAV - Responsive style */}
+      <nav className="navbar">
         {/* Logo */}
         <div style={{ display:'flex', alignItems:'center', gap:10, marginRight:16 }}>
           <div style={{
@@ -242,17 +235,16 @@ export default function App() {
             background:'linear-gradient(135deg, #FFF9C4, #FFE0B2)',
             borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center',
             boxShadow:'0 2px 6px rgba(0,0,0,0.06)',
-            color: '#E5A93D'
+            color: '#E5A93D',
+            flexShrink:0
           }}>
             <Brain size={18} />
           </div>
-          <div>
-            <div style={{ fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:20, fontWeight:700, color:'var(--text-dark)', lineHeight:1, letterSpacing:'-0.5px' }}>SochPad</div>
-          </div>
+          <div className="logo-text">SochPad</div>
         </div>
 
         {/* Nav links */}
-        <div style={{ display:'flex', gap:8 }}>
+        <div className="nav-links">
           {NAV.map(n => {
             const active = currentPage === n.id;
             const Icon = n.icon;
@@ -260,21 +252,9 @@ export default function App() {
               <button
                 key={n.id}
                 onClick={() => setCurrentPage(n.id)}
-                style={{
-                  background: active ? 'rgba(0,0,0,0.04)' : 'transparent',
-                  border: 'none',
-                  borderRadius:50,
-                  padding:'8px 16px', cursor:'pointer',
-                  fontFamily:"'Plus Jakarta Sans', sans-serif",
-                  fontWeight:600, fontSize:14,
-                  color: active ? 'var(--text-dark)' : 'var(--text-mid)',
-                  transition:'all 0.2s',
-                  display:'flex', alignItems:'center', gap:8,
-                }}
-                onMouseEnter={e => { if(!active) e.currentTarget.style.color = 'var(--text-dark)'; }}
-                onMouseLeave={e => { if(!active) e.currentTarget.style.color = 'var(--text-mid)'; }}
+                className={`nav-btn ${active ? 'active' : ''}`}
               >
-                <Icon size={16} /> {n.label}
+                <Icon size={16} /> <span className="nav-label">{n.label}</span>
               </button>
             );
           })}
@@ -284,13 +264,8 @@ export default function App() {
 
         {/* Streak pill */}
         {streak > 0 && (
-          <div style={{
-            background:'rgba(229,169,61,0.1)', color:'var(--accent-dark)',
-            borderRadius:50, padding:'6px 14px', fontSize:13, fontWeight:700,
-            display:'flex', alignItems:'center', gap:6,
-            fontFamily:"'Plus Jakarta Sans',sans-serif",
-          }}>
-            <Flame size={14} style={{ animation:'fire 1.5s ease infinite', color: '#E5A93D' }} /> Day {streak}
+          <div className="streak-pill">
+            <Flame size={14} style={{ animation:'fire 1.5s ease infinite', color: '#E5A93D' }} /> <span>Day {streak}</span>
           </div>
         )}
 
@@ -300,13 +275,14 @@ export default function App() {
           onClick={() => setShowAdd(true)}
           style={{ padding:'8px 20px', fontSize:14, borderRadius:'50px', display: 'flex', alignItems: 'center', gap: 6 }}
         >
-          <Plus size={16} /> Add Task
+          <Plus size={16} /> <span className="btn-add-text">Add Task</span>
         </button>
 
         {/* Logout */}
         {currentUser && (
           <button
             onClick={handleLogout}
+            className="btn-logout"
             style={{
               background:'rgba(220,50,50,0.05)', border:'none', color: '#C53030',
               borderRadius:50, padding:'8px 16px', cursor:'pointer',
@@ -316,7 +292,8 @@ export default function App() {
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,50,50,0.1)'}
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(220,50,50,0.05)'}
           >
-            Log Out
+            <span className="btn-logout-text">Log Out</span>
+            <Key size={14} className="btn-logout-icon" style={{ display:'none' }} />
           </button>
         )}
 

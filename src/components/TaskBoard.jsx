@@ -62,7 +62,7 @@ export default function TaskBoard({ tasks, onComplete, onDelete, onSnooze, onMov
         </div>
       )}
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:24, alignItems:'start' }}>
+      <div className="board-container">
         {COLUMNS.map(col => {
           const colTasks = getColumnTasks(col.key);
           const isDropTarget = dragId && dragOver === col.key;
@@ -72,6 +72,7 @@ export default function TaskBoard({ tasks, onComplete, onDelete, onSnooze, onMov
               onDragOver={e => { e.preventDefault(); setDragOver(col.key); }}
               onDragLeave={() => setDragOver(null)}
               onDrop={e => handleDrop(e, col.key)}
+              className="board-column"
               style={{
                 minHeight:350, borderRadius:16, padding:'20px 16px',
                 background: isDropTarget 

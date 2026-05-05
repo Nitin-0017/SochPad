@@ -57,29 +57,11 @@ export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
-export function calcStreak(completions) {
-  if (!completions?.length) return 0;
-  const dates = [...new Set(completions.map(c => c.date))].sort().reverse();
-  let streak = 0;
-  const today = new Date().toISOString().split('T')[0];
-  let check = today;
-  for (const d of dates) {
-    if (d === check) {
-      streak++;
-      const next = new Date(check);
-      next.setDate(next.getDate() - 1);
-      check = next.toISOString().split('T')[0];
-    } else break;
-  }
-  return streak;
-}
-
-export const COMPLETION_MESSAGES = [
-  'Nailed it! 🎯', 'Look at you go! ✨', 'One down, legend! 🏆',
-  'Your future self thanks you 🙌', 'Crushed it! 💥', 'Boom! Done! 🚀',
-  'That\'s what I\'m talking about! 🔥', 'Level up! ⬆️',
-];
-
 export function randomCompletionMsg() {
+  const COMPLETION_MESSAGES = [
+    'Nailed it! 🎯', 'Look at you go! ✨', 'One down, legend! 🏆',
+    'Your future self thanks you 🙌', 'Crushed it! 💥', 'Boom! Done! 🚀',
+    'That\'s what I\'m talking about! 🔥', 'Level up! ⬆️',
+  ];
   return COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)];
 }

@@ -108,62 +108,85 @@ export default function Dashboard({ tasks, onComplete, onDelete, onSnooze, onExp
     </div>
   );
 
+  const backgroundNotes = (
+    <>
+      <div style={{
+        position: 'absolute', top: '15%', left: '5%', transform: 'rotate(-4deg)',
+        background: 'var(--note-yellow)', padding: '24px', width: '180px', height: '180px',
+        borderRadius: '4px', opacity: 0.25, filter: 'blur(2px)', boxShadow: 'var(--shadow-note)',
+        zIndex: 0, animation: 'emptyNoteFloat 6s ease-in-out infinite', '--note-rot': '-4deg',
+        pointerEvents: 'none'
+      }}>
+        <div className="push-pin pin-yellow" style={{ opacity: 0.5 }} />
+        <p style={{ fontFamily: "'Caveat',cursive", fontSize: 24, color: 'var(--text-dark)', marginTop: 10 }}>Study for exam</p>
+      </div>
+
+      <div style={{
+        position: 'absolute', top: '30%', right: '5%', transform: 'rotate(5deg)',
+        background: 'var(--note-mint)', padding: '24px', width: '180px', height: '180px',
+        borderRadius: '4px', opacity: 0.3, filter: 'blur(1.5px)', boxShadow: 'var(--shadow-note)',
+        zIndex: 0, animation: 'emptyNoteFloat 7s ease-in-out infinite alternate',
+        '--note-rot': '5deg', animationDelay: '1s', pointerEvents: 'none'
+      }}>
+        <div className="push-pin pin-green" style={{ opacity: 0.5 }} />
+        <p style={{ fontFamily: "'Caveat',cursive", fontSize: 24, color: 'var(--text-dark)', marginTop: 10 }}>Go for a walk</p>
+      </div>
+
+      <div style={{
+        position: 'absolute', bottom: '15%', left: '10%', transform: 'rotate(-2deg)',
+        background: 'var(--note-peach)', padding: '24px', width: '160px', height: '160px',
+        borderRadius: '4px', opacity: 0.2, filter: 'blur(2.5px)', boxShadow: 'var(--shadow-note)',
+        zIndex: 0, animation: 'emptyNoteFloat 8s ease-in-out infinite', '--note-rot': '-2deg',
+        animationDelay: '2s', pointerEvents: 'none'
+      }}>
+        <div className="push-pin pin-red" style={{ opacity: 0.5 }} />
+        <p style={{ fontFamily: "'Caveat',cursive", fontSize: 22, color: 'var(--text-dark)', marginTop: 10 }}>Call mom</p>
+      </div>
+      
+      <div style={{
+        position: 'absolute', bottom: '25%', right: '12%', transform: 'rotate(3deg)',
+        background: 'var(--note-lavender)', padding: '24px', width: '170px', height: '170px',
+        borderRadius: '4px', opacity: 0.25, filter: 'blur(1.8px)', boxShadow: 'var(--shadow-note)',
+        zIndex: 0, animation: 'emptyNoteFloat 9s ease-in-out infinite alternate',
+        '--note-rot': '3deg', animationDelay: '0.5s', pointerEvents: 'none'
+      }}>
+        <div className="push-pin pin-blue" style={{ opacity: 0.5 }} />
+        <p style={{ fontFamily: "'Caveat',cursive", fontSize: 22, color: 'var(--text-dark)', marginTop: 10 }}>Buy groceries</p>
+      </div>
+    </>
+  );
+
   if (tasks.length === 0) {
     return (
       <div style={{
-        padding: '60px 20px',
-        maxWidth: '900px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        position: 'relative',
-        minHeight: '70vh',
-        justifyContent: 'center'
+        padding: '60px 20px', maxWidth: '900px', margin: '0 auto',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        position: 'relative', minHeight: '70vh', justifyContent: 'center'
       }} className="animate-fade-in">
-
-        {/* HERO SECTION */}
+        {backgroundNotes}
         {renderHeroGreeting("Your board is empty. That's a good start.")}
-
-        {/* PRIMARY ACTION */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
           <button
             onClick={onAddClick}
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))',
-              color: 'white',
-              border: 'none',
-              borderRadius: '50px',
-              padding: '16px 40px',
-              fontSize: '18px',
-              fontWeight: 600,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              cursor: 'pointer',
+              color: 'white', border: 'none', borderRadius: '50px',
+              padding: '16px 40px', fontSize: '18px', fontWeight: 600,
+              fontFamily: "'Plus Jakarta Sans', sans-serif", cursor: 'pointer',
               boxShadow: '0 8px 24px rgba(229,169,61,0.25)',
-              animation: 'pulseGlow 2.5s infinite',
-              transition: 'transform 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
+              animation: 'pulseGlow 2.5s infinite', transition: 'transform 0.2s',
+              display: 'flex', alignItems: 'center', gap: '8px'
             }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
           >
             <PenLine size={18} /> Add your first thought
           </button>
-
-          {/* AI GUIDANCE */}
           <div style={{
-            marginTop: '24px',
-            background: 'white',
-            borderRadius: '20px',
-            padding: '10px 20px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            border: '1px solid rgba(0,0,0,0.03)',
-            color: 'var(--accent)'
+            marginTop: '24px', background: 'white', borderRadius: '20px',
+            padding: '10px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+            display: 'flex', alignItems: 'center', gap: '10px',
+            border: '1px solid rgba(0,0,0,0.03)', color: 'var(--accent)'
           }}>
             <BrainCircuit size={18} />
             <span style={{ fontFamily: "'Patrick Hand',cursive", fontSize: 16, color: 'var(--text-mid)' }}>
@@ -171,73 +194,6 @@ export default function Dashboard({ tasks, onComplete, onDelete, onSnooze, onExp
             </span>
           </div>
         </div>
-
-        {/* FADED BACKGROUND STICKY NOTES */}
-        <div style={{
-          position: 'absolute',
-          top: '20%',
-          left: '5%',
-          transform: 'rotate(-4deg)',
-          background: 'var(--note-yellow)',
-          padding: '24px',
-          width: '180px',
-          height: '180px',
-          borderRadius: '4px',
-          opacity: 0.5,
-          filter: 'blur(1.5px)',
-          boxShadow: 'var(--shadow-note)',
-          zIndex: 0,
-          animation: 'emptyNoteFloat 6s ease-in-out infinite',
-          '--note-rot': '-4deg'
-        }}>
-          <div className="push-pin pin-yellow" style={{ opacity: 0.7 }} />
-          <p style={{ fontFamily: "'Caveat',cursive", fontSize: 24, color: 'var(--text-dark)', marginTop: 10 }}>Study for exam</p>
-        </div>
-
-        <div style={{
-          position: 'absolute',
-          top: '35%',
-          right: '5%',
-          transform: 'rotate(5deg)',
-          background: 'var(--note-mint)',
-          padding: '24px',
-          width: '180px',
-          height: '180px',
-          borderRadius: '4px',
-          opacity: 0.6,
-          filter: 'blur(1px)',
-          boxShadow: 'var(--shadow-note)',
-          zIndex: 0,
-          animation: 'emptyNoteFloat 7s ease-in-out infinite alternate',
-          '--note-rot': '5deg',
-          animationDelay: '1s'
-        }}>
-          <div className="push-pin pin-green" style={{ opacity: 0.7 }} />
-          <p style={{ fontFamily: "'Caveat',cursive", fontSize: 24, color: 'var(--text-dark)', marginTop: 10 }}>Go for a walk</p>
-        </div>
-
-        <div style={{
-          position: 'absolute',
-          bottom: '5%',
-          left: '30%',
-          transform: 'rotate(-2deg)',
-          background: 'var(--note-peach)',
-          padding: '24px',
-          width: '160px',
-          height: '160px',
-          borderRadius: '4px',
-          opacity: 0.4,
-          filter: 'blur(2px)',
-          boxShadow: 'var(--shadow-note)',
-          zIndex: 0,
-          animation: 'emptyNoteFloat 8s ease-in-out infinite',
-          '--note-rot': '-2deg',
-          animationDelay: '2s'
-        }}>
-          <div className="push-pin pin-red" style={{ opacity: 0.7 }} />
-          <p style={{ fontFamily: "'Caveat',cursive", fontSize: 22, color: 'var(--text-dark)', marginTop: 10 }}>Call mom</p>
-        </div>
-
       </div>
     );
   }
@@ -249,8 +205,10 @@ export default function Dashboard({ tasks, onComplete, onDelete, onSnooze, onExp
       margin: '0 auto',
       display: 'flex',
       flexDirection: 'column',
-      gap: '48px'
+      gap: '48px',
+      position: 'relative'
     }}>
+      {backgroundNotes}
 
       {/* HERO SECTION */}
       <div style={{ textAlign: 'center', marginTop: '20px' }} className="animate-fade-in">
